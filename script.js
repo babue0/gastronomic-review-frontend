@@ -129,8 +129,21 @@ document.getElementById("formReview").addEventListener("submit", async (e) => {
 // 3. CARREGAR O FEED
 // ==========================================
 
+function getLoggedEmail() {
+  const token = localStorage.getItem("michelinToken");
+  if (!token) return null;
+  try {
+    // O JWT é dividido em 3 partes por um ponto (.). O "meio" dele (índice 1) tem os dados!
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.sub; // 'sub' é onde o Spring Security guarda o e-mail do usuário
+  } catch (e) {
+    return null;
+  }
+}
+
 async function loadFeed() {
   const token = localStorage.getItem("michelinToken");
+  const loggedEmail = getLoggedEmail();
 
   const response = await fetch(`${API_URL}/reviews`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -140,14 +153,22 @@ async function loadFeed() {
 
   const reviews = await response.json();
   const feedContainer = document.getElementById("feedContainer");
-  feedContainer.innerHTML = ""; // Limpa antes de carregar
+  feedContainer.innerHTML = "";
 
   reviews.forEach((review) => {
-    // Converte o número 4 em "⭐⭐⭐⭐", por exemplo.
+    console.log("Post em texto puro:", JSON.stringify(review));
     const starsHtml = "⭐".repeat(review.rating);
-
-    // Puxa a foto lá da pasta 'uploads' do seu Java
     const imageUrl = `${API_URL}/uploads/${review.imagePath}`;
+
+    // 👇 A correção: passamos o review.id garantindo que seja um número pro JS
+    let deleteBtnHtml = "";
+    if (review.user.email === loggedEmail) {
+      deleteBtnHtml = `
+                <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete(${Number(review.Id)})">
+                    🗑️
+                </button>
+            `;
+    }
 
     feedContainer.innerHTML += `
             <div class="col-md-6">
@@ -161,11 +182,55 @@ async function loadFeed() {
                         </div>
                         <p class="text-muted small mb-2">"${review.comment}"</p>
                         <hr class="my-2">
-                        <p class="author-text mb-0">Postado por <strong>${review.user.name}</strong></p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="author-text mb-0">Postado por <strong>${review.user.name}</strong></p>
+                            ${deleteBtnHtml}
+                        </div>
+
                     </div>
                 </div>
             </div>
         `;
+  });
+}
+
+// O Pop-up de confirmação do SweetAlert2
+function confirmDelete(reviewId) {
+  console.log("ID do post a ser deletado:", reviewId); // <-- Verifique o console do navegador
+
+  if (!reviewId || isNaN(reviewId)) {
+    Swal.fire("Erro!", "ID do post inválido.", "error");
+    return;
+  }
+
+  Swal.fire({
+    title: "Excluir avaliação?",
+    text: "Você não poderá reverter isso depois!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#dc3545",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Sim, excluir!",
+    cancelButtonText: "Cancelar",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      const token = localStorage.getItem("michelinToken");
+
+      const res = await fetch(`${API_URL}/reviews/${reviewId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        Swal.fire("Excluído!", "O post foi apagado com sucesso.", "success");
+        loadFeed(); // Atualiza a tela automaticamente
+      } else {
+        // Se der erro, vamos mostrar o texto que o Java devolveu pra entender melhor!
+        const errorText = await res.text();
+        Swal.fire("Erro", errorText || "Não foi possível excluir.", "error");
+      }
+    }
   });
 }
 
