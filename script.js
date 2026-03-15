@@ -5,6 +5,7 @@ const authSection = document.getElementById("authSection");
 const feedSection = document.getElementById("feedSection");
 const loginBox = document.getElementById("loginBox");
 const registerBox = document.getElementById("registerBox");
+const btnLogout = document.getElementById("btnLogout"); // 👇 Adicione esta linha!
 
 // Alternar entre Login e Cadastro
 function toggleAuth() {
@@ -64,9 +65,15 @@ document.getElementById("formLogin").addEventListener("submit", async (e) => {
 });
 
 function logout() {
+  // Apaga a "Pulseira VIP"
   localStorage.removeItem("michelinToken");
+
+  // Troca as telas
   authSection.classList.remove("d-none");
   feedSection.classList.add("d-none");
+
+  // 👇 Esconde o botão de sair da Navbar
+  btnLogout.classList.add("d-none");
 }
 
 function checkAuth() {
@@ -74,8 +81,13 @@ function checkAuth() {
 }
 
 function showFeed() {
+  // Troca as telas
   authSection.classList.add("d-none");
   feedSection.classList.remove("d-none");
+
+  // 👇 Mostra o botão de sair lá no topo direito
+  btnLogout.classList.remove("d-none");
+
   loadFeed();
 }
 
@@ -164,30 +176,31 @@ async function loadFeed() {
     let deleteBtnHtml = "";
     if (review.user.email === loggedEmail) {
       deleteBtnHtml = `
-                <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete(${Number(review.Id)})">
-                    🗑️
+                <button class="btn-delete" onclick="confirmDelete(${Number(review.Id)})">
+                    Excluir
                 </button>
             `;
     }
 
+    // O NOVO CARTÃO GOURMET
     feedContainer.innerHTML += `
-            <div class="col-md-6">
-                <div class="review-card position-relative">
-                    <span class="category-badge">${review.category}</span>
-                    <img src="${imageUrl}" class="review-img" alt="Foto do prato">
-                    <div class="p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h5 class="fw-bold mb-0">${review.restaurantName}</h5>
-                            <span class="stars">${starsHtml}</span>
+            <div class="col-md-6 mb-4">
+                <div class="review-card">
+                    <div class="img-container">
+                        <span class="category-badge">${review.category}</span>
+                        <img src="${imageUrl}" class="review-img" alt="Foto do prato">
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="fw-bold mb-0 text-truncate pe-2">${review.restaurantName}</h5>
+                            <span class="stars flex-shrink-0">${starsHtml}</span>
                         </div>
-                        <p class="text-muted small mb-2">"${review.comment}"</p>
-                        <hr class="my-2">
+                        <p class="text-muted small mb-3 flex-grow-1">"${review.comment}"</p>
                         
-                        <div class="d-flex justify-content-between align-items-center">
-                            <p class="author-text mb-0">Postado por <strong>${review.user.name}</strong></p>
+                        <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                            <p class="author-text mb-0">Por <strong>${review.user.name}</strong></p>
                             ${deleteBtnHtml}
                         </div>
-
                     </div>
                 </div>
             </div>

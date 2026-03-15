@@ -1,52 +1,162 @@
-body {
-  background-color: #f8f9fa;
-  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+
+:root {
+  --primary-color: #ff4757;
+  --secondary-color: #ffa502;
+  --bg-color: #f8f9fa;
+  --surface-color: #ffffff;
+  --text-main: #2f3542;
+  --text-muted: #747d8c;
 }
 
-/* O Cartão do Prato no Feed */
-.review-card {
+body {
+  background-color: var(--bg-color);
+  font-family: "Poppins", sans-serif;
+  color: var(--text-main);
+}
+
+/* Navbar Customizada */
+.custom-navbar {
+  background: var(--surface-color);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  padding: 15px 0;
+  margin-bottom: 40px;
+}
+
+.brand-text {
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: var(--primary-color);
+  letter-spacing: -0.5px;
+}
+
+/* Formulário Lateral (Sticky) */
+.form-container {
+  background: var(--surface-color);
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 20px; /* Faz o formulário descer junto com a tela */
+}
+
+.form-control,
+.form-select {
+  border-radius: 12px;
+  border: 1px solid #f1f2f6;
+  background-color: #f1f2f6;
+  padding: 12px 15px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: #fff;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 4px rgba(255, 165, 2, 0.15);
+}
+
+.btn-post {
+  background: linear-gradient(135deg, var(--secondary-color), #ff7f50);
+  color: white;
+  border-radius: 12px;
+  padding: 12px;
   border: none;
-  border-radius: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.btn-post:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 165, 2, 0.3);
+  color: white;
+}
+
+/* Cartões do Feed */
+.review-card {
+  background: var(--surface-color);
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s;
-  background: white;
-  margin-bottom: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border: none;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .review-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
 }
 
-/* A Foto da Comida */
+.img-container {
+  position: relative;
+  padding: 15px 15px 0 15px;
+}
+
 .review-img {
   width: 100%;
-  height: 250px;
-  object-fit: cover; /* Faz a foto encaixar sem distorcer */
+  height: 220px;
+  object-fit: cover;
+  border-radius: 18px;
 }
 
-/* As estrelinhas de nota */
-.stars {
-  color: #ffc107;
-  font-size: 1.2rem;
-  letter-spacing: 2px;
-}
-
-/* O selo de categoria (Hambúrguer, Pizza...) */
 .category-badge {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  background: rgba(0, 0, 0, 0.7);
+  top: 25px;
+  right: 25px;
+  background: rgba(47, 53, 66, 0.85);
   color: white;
-  padding: 5px 12px;
+  padding: 6px 16px;
   border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  backdrop-filter: blur(4px);
+  font-size: 0.75rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.card-body-custom {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.stars {
+  color: var(--secondary-color);
+  font-size: 1.1rem;
+  letter-spacing: 2px;
 }
 
 .author-text {
   font-size: 0.85rem;
-  color: #6c757d;
+  color: var(--text-muted);
+}
+
+.author-text strong {
+  color: var(--text-main);
+}
+
+/* Botão de deletar minimalista */
+.btn-delete {
+  background: #ffeaa7;
+  color: var(--primary-color);
+  border: none;
+  border-radius: 50px;
+  padding: 6px 15px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-delete:hover {
+  background: var(--primary-color);
+  color: white;
 }
