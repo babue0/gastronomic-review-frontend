@@ -176,13 +176,18 @@ async function loadFeed() {
     let deleteBtnHtml = "";
     if (review.user.email === loggedEmail) {
       deleteBtnHtml = `
-                <button class="btn-delete" onclick="confirmDelete(${Number(review.Id)})">
+                <button class="btn-delete ms-2" onclick="confirmDelete(${Number(review.Id)})">
                     Excluir
                 </button>
             `;
     }
 
-    // O NOVO CARTÃO GOURMET
+    // Lógica do Coração (Like)
+    const hasLiked =
+      review.likedByEmails && review.likedByEmails.includes(loggedEmail);
+    const heartIcon = hasLiked ? "❤️" : "🤍";
+    const likeClass = hasLiked ? "liked" : "";
+
     feedContainer.innerHTML += `
             <div class="col-md-6 mb-4">
                 <div class="review-card">
@@ -199,7 +204,13 @@ async function loadFeed() {
                         
                         <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
                             <p class="author-text mb-0">Por <strong>${review.user.name}</strong></p>
-                            ${deleteBtnHtml}
+                            
+                            <div class="d-flex align-items-center">
+                                <button class="btn-like ${likeClass}" onclick="toggleLike(${Number(review.Id)})">
+                                    ${heartIcon} <span class="ms-2">${review.likeCount}</span>
+                                </button>
+                                ${deleteBtnHtml}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -245,6 +256,18 @@ function confirmDelete(reviewId) {
       }
     }
   });
+}
+
+// Dispara quando a pessoa clica no coração
+async function toggleLike(reviewId) {
+  const token = localStorage.getItem("michelinToken");
+
+  await fetch(`${API_URL}/reviews/${reviewId}/like`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  loadFeed(); // Recarrega o feed para atualizar os corações e os números
 }
 
 checkAuth();
