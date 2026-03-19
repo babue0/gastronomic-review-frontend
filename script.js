@@ -1,12 +1,12 @@
-const API_URL = "http://localhost:8080";
+const API_URL = "https://gastronomic-review-backend.onrender.com";
 
 const authSection = document.getElementById("authSection");
 const feedSection = document.getElementById("feedSection");
 const loginBox = document.getElementById("loginBox");
 const registerBox = document.getElementById("registerBox");
-const btnLogout = document.getElementById("btnLogout");
 const profileSection = document.getElementById("profileSection");
 const btnProfile = document.getElementById("btnProfile");
+const btnLogout = document.getElementById("btnLogout");
 
 function toggleAuth() {
   loginBox.classList.toggle("d-none");
@@ -65,7 +65,6 @@ function logout() {
   authSection.classList.remove("d-none");
   feedSection.classList.add("d-none");
   profileSection.classList.add("d-none");
-  btnLogout.classList.add("d-none");
   btnProfile.classList.add("d-none");
 }
 
@@ -77,7 +76,6 @@ function showFeed() {
   authSection.classList.add("d-none");
   profileSection.classList.add("d-none");
   feedSection.classList.remove("d-none");
-  btnLogout.classList.remove("d-none");
   btnProfile.classList.remove("d-none");
   loadFeed();
 }
@@ -123,7 +121,7 @@ document.getElementById("formReview").addEventListener("submit", async (e) => {
       Swal.fire("Ops", "Erro ao salvar o post.", "error");
     }
   } catch (error) {
-    console.error("Erro:", error);
+    console.error(error);
   }
 });
 
@@ -165,16 +163,15 @@ async function loadFeed(category = "", searchName = "") {
   }
 
   reviews.forEach((review) => {
-    console.log("Post em texto puro:", JSON.stringify(review));
     const starsHtml = "⭐".repeat(review.rating);
-    const imageUrl = `${API_URL}/uploads/${review.imagePath}`;
-
+    const imageUrl = review.imagePath.startsWith("http")
+      ? review.imagePath
+      : `${API_URL}/uploads/${review.imagePath}`;
     let deleteBtnHtml = "";
     let authorHtml = "";
 
     if (review.user.email === loggedEmail) {
       authorHtml = `<p class="author-text mb-0 fw-bold" style="color: var(--primary-color);">Minha postagem</p>`;
-
       deleteBtnHtml = `
                 <button class="btn-delete ms-2" onclick="confirmDelete(${Number(review.Id)})">
                     Excluir
@@ -207,9 +204,7 @@ async function loadFeed(category = "", searchName = "") {
                         <p class="text-muted small mb-3 flex-grow-1">"${review.comment}"</p>
                         
                         <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
-                            
                             ${authorHtml}
-                            
                             <div class="d-flex align-items-center">
                                 <button class="btn-like ${likeClass}" onclick="toggleLike(${Number(review.Id)})">
                                     ${heartIcon} <span class="ms-2">${review.likeCount}</span>
@@ -225,8 +220,6 @@ async function loadFeed(category = "", searchName = "") {
 }
 
 function confirmDelete(reviewId) {
-  console.log("ID do post a ser deletado:", reviewId);
-
   if (!reviewId || isNaN(reviewId)) {
     Swal.fire("Erro!", "ID do post inválido.", "error");
     return;
@@ -263,12 +256,10 @@ function confirmDelete(reviewId) {
 
 async function toggleLike(reviewId) {
   const token = localStorage.getItem("michelinToken");
-
   await fetch(`${API_URL}/reviews/${reviewId}/like`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
   });
-
   loadFeed();
 }
 
@@ -277,12 +268,10 @@ function filterCategory(categoryName, clickedButton) {
 
   if (clickedButton) {
     const allButtons = document.querySelectorAll("#categoryFilters button");
-
     allButtons.forEach((btn) => {
       btn.classList.remove("btn-dark");
       btn.classList.add("btn-outline-dark");
     });
-
     clickedButton.classList.remove("btn-outline-dark");
     clickedButton.classList.add("btn-dark");
   }
@@ -311,7 +300,9 @@ async function viewUserProfile(userId, userName) {
   authSection.classList.add("d-none");
   feedSection.classList.add("d-none");
   profileSection.classList.remove("d-none");
+
   document.getElementById("profileTitle").innerText = `Perfil de ${userName}`;
+  document.getElementById("btnLogout").classList.add("d-none");
 
   const response = await fetch(`${API_URL}/reviews/user/${userId}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -328,6 +319,7 @@ async function loadProfile() {
   const loggedEmail = getLoggedEmail();
 
   document.getElementById("profileTitle").innerText = "Meu Perfil";
+  document.getElementById("btnLogout").classList.remove("d-none");
 
   const response = await fetch(`${API_URL}/reviews/me`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -356,7 +348,9 @@ function renderProfileData(profileData, loggedEmail) {
 
   profileData.myReviews.forEach((review) => {
     const starsHtml = "⭐".repeat(review.rating);
-    const imageUrl = `${API_URL}/uploads/${review.imagePath}`;
+    const imageUrl = review.imagePath.startsWith("http")
+      ? review.imagePath
+      : `${API_URL}/uploads/${review.imagePath}`;
 
     const hasLiked =
       review.likedByEmails && review.likedByEmails.includes(loggedEmail);
