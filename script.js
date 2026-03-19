@@ -192,12 +192,23 @@ async function loadFeed(category = "", searchName = "") {
 
     // 👇 A correção: passamos o review.id garantindo que seja um número pro JS
     let deleteBtnHtml = "";
+    let authorHtml = "";
+
     if (review.user.email === loggedEmail) {
+      // Se o post for SEU: Mostra "Minha postagem" em destaque e o botão de lixeira
+      authorHtml = `<p class="author-text mb-0 fw-bold" style="color: var(--primary-color);">Minha postagem</p>`;
+
       deleteBtnHtml = `
                 <button class="btn-delete ms-2" onclick="confirmDelete(${Number(review.Id)})">
                     Excluir
                 </button>
             `;
+    } else {
+      // Se o post for DE OUTRA PESSOA: Mostra o nome dela clicável para visitar o perfil
+      authorHtml = `
+                <p class="author-text mb-0" style="cursor: pointer; transition: 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1" onclick="viewUserProfile(${review.user.id}, '${review.user.name}')">
+                    Por <strong style="color: var(--primary-color); text-decoration: underline;">${review.user.name}</strong>
+                </p>`;
     }
 
     // Lógica do Coração (Like)
@@ -206,6 +217,7 @@ async function loadFeed(category = "", searchName = "") {
     const heartIcon = hasLiked ? "❤️" : "🤍";
     const likeClass = hasLiked ? "liked" : "";
 
+    // Montagem do cartão do Feed
     feedContainer.innerHTML += `
             <div class="col-md-6 mb-4">
                 <div class="review-card">
@@ -221,7 +233,8 @@ async function loadFeed(category = "", searchName = "") {
                         <p class="text-muted small mb-3 flex-grow-1">"${review.comment}"</p>
                         
                         <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
-                            <p class="author-text mb-0">Por <strong>${review.user.name}</strong></p>
+                            
+                            ${authorHtml}
                             
                             <div class="d-flex align-items-center">
                                 <button class="btn-like ${likeClass}" onclick="toggleLike(${Number(review.Id)})">
@@ -381,6 +394,105 @@ async function loadProfile() {
                                 ${heartIcon} <span class="ms-1">${review.likeCount}</span>
                             </button>
                             <button class="btn-delete" onclick="confirmDelete(${Number(review.Id)})">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+  });
+}
+
+async function viewUserProfile(userId, userName) {
+  const token = localStorage.getItem("michelinToken");
+  const loggedEmail = getLoggedEmail();
+
+  // Troca as telas e altera o título grandão
+  authSection.classList.add("d-none");
+  feedSection.classList.add("d-none");
+  profileSection.classList.remove("d-none");
+  document.getElementById("profileTitle").innerText = `Perfil de ${userName}`;
+
+  // Busca os dados da pessoa que foi clicada
+  const response = await fetch(`${API_URL}/reviews/user/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (response.status === 403) return logout();
+  const profileData = await response.json();
+
+  // Usa a função auxiliar para pintar os dados na tela
+  renderProfileData(profileData, loggedEmail);
+}
+
+// A sua função loadProfile (Meu Perfil) atualizada para usar o mesmo padrão!
+async function loadProfile() {
+  const token = localStorage.getItem("michelinToken");
+  const loggedEmail = getLoggedEmail();
+
+  // Garante que o título volta a ser "Meu Perfil"
+  document.getElementById("profileTitle").innerText = "Meu Perfil";
+
+  const response = await fetch(`${API_URL}/reviews/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (response.status === 403) return logout();
+  const profileData = await response.json();
+
+  // Usa a função auxiliar para pintar os dados na tela
+  renderProfileData(profileData, loggedEmail);
+}
+
+// A função que desenha os painéis e as fotos (Reaproveitada para Meu Perfil e Perfil dos Outros)
+function renderProfileData(profileData, loggedEmail) {
+  document.getElementById("statTotal").innerText = profileData.totalReviews;
+  document.getElementById("statAvg").innerText =
+    profileData.averageRating.toFixed(1);
+  document.getElementById("statFav").innerText = profileData.favoriteCategory;
+
+  const profileFeedContainer = document.getElementById("profileFeedContainer");
+  profileFeedContainer.innerHTML = "";
+
+  if (profileData.myReviews.length === 0) {
+    profileFeedContainer.innerHTML =
+      "<p class='text-muted'>Nenhuma avaliação encontrada.</p>";
+    return;
+  }
+
+  profileData.myReviews.forEach((review) => {
+    const starsHtml = "⭐".repeat(review.rating);
+    const imageUrl = `${API_URL}/uploads/${review.imagePath}`;
+
+    const hasLiked =
+      review.likedByEmails && review.likedByEmails.includes(loggedEmail);
+    const heartIcon = hasLiked ? "❤️" : "🤍";
+    const likeClass = hasLiked ? "liked" : "";
+
+    // O Botão de excluir só aparece se VOCÊ for o dono do post!
+    let deleteBtnHtml = "";
+    if (review.user.email === loggedEmail) {
+      deleteBtnHtml = `<button class="btn-delete" onclick="confirmDelete(${Number(review.Id)})">🗑️</button>`;
+    }
+
+    profileFeedContainer.innerHTML += `
+            <div class="col-md-4 mb-4">
+                <div class="review-card">
+                    <div class="img-container">
+                        <span class="category-badge">${review.category}</span>
+                        <img src="${imageUrl}" class="review-img" style="height: 180px;">
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="fw-bold mb-0 text-truncate pe-2">${review.restaurantName}</h6>
+                            <span class="stars flex-shrink-0" style="font-size:0.9rem;">${starsHtml}</span>
+                        </div>
+                        <p class="text-muted small mb-3 text-truncate">"${review.comment}"</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                            <button class="btn-like ${likeClass}" onclick="toggleLike(${Number(review.Id)}); setTimeout(() => viewUserProfile(${review.user.id}, '${review.user.name}'), 300)">
+                                ${heartIcon} <span class="ms-1">${review.likeCount}</span>
+                            </button>
+                            ${deleteBtnHtml}
                         </div>
                     </div>
                 </div>
