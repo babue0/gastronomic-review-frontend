@@ -5,7 +5,9 @@ const authSection = document.getElementById("authSection");
 const feedSection = document.getElementById("feedSection");
 const loginBox = document.getElementById("loginBox");
 const registerBox = document.getElementById("registerBox");
-const btnLogout = document.getElementById("btnLogout"); // 👇 Adicione esta linha!
+const btnLogout = document.getElementById("btnLogout");
+const profileSection = document.getElementById("profileSection");
+const btnProfile = document.getElementById("btnProfile");
 
 // Alternar entre Login e Cadastro
 function toggleAuth() {
@@ -65,15 +67,12 @@ document.getElementById("formLogin").addEventListener("submit", async (e) => {
 });
 
 function logout() {
-  // Apaga a "Pulseira VIP"
   localStorage.removeItem("michelinToken");
-
-  // Troca as telas
   authSection.classList.remove("d-none");
   feedSection.classList.add("d-none");
-
-  // 👇 Esconde o botão de sair da Navbar
+  profileSection.classList.add("d-none"); // Esconde perfil
   btnLogout.classList.add("d-none");
+  btnProfile.classList.add("d-none"); // Esconde botão
 }
 
 function checkAuth() {
@@ -81,14 +80,19 @@ function checkAuth() {
 }
 
 function showFeed() {
-  // Troca as telas
   authSection.classList.add("d-none");
-  feedSection.classList.remove("d-none");
-
-  // 👇 Mostra o botão de sair lá no topo direito
+  profileSection.classList.add("d-none"); // Esconde perfil
+  feedSection.classList.remove("d-none"); // Mostra feed
   btnLogout.classList.remove("d-none");
-
+  btnProfile.classList.remove("d-none");
   loadFeed();
+}
+
+function showProfile() {
+  authSection.classList.add("d-none");
+  feedSection.classList.add("d-none"); // Esconde feed
+  profileSection.classList.remove("d-none"); // Mostra perfil
+  loadProfile(); // Chama a nova função!
 }
 
 // ==========================================
@@ -153,11 +157,19 @@ function getLoggedEmail() {
   }
 }
 
-async function loadFeed() {
+async function loadFeed(category = "", searchName = "") {
   const token = localStorage.getItem("michelinToken");
   const loggedEmail = getLoggedEmail();
 
-  const response = await fetch(`${API_URL}/reviews`, {
+  // Monta a URL inteligente dependendo do que o usuário quer
+  let url = `${API_URL}/reviews`;
+  if (category) {
+    url += `?category=${category}`;
+  } else if (searchName) {
+    url += `?restaurantName=${searchName}`;
+  }
+
+  const response = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -166,6 +178,12 @@ async function loadFeed() {
   const reviews = await response.json();
   const feedContainer = document.getElementById("feedContainer");
   feedContainer.innerHTML = "";
+
+  // Mensagem caso não encontre nenhum restaurante com aquele nome
+  if (reviews.length === 0) {
+    feedContainer.innerHTML = `<div class="col-12"><p class="text-muted text-center mt-4">Nenhuma avaliação encontrada.</p></div>`;
+    return;
+  }
 
   reviews.forEach((review) => {
     console.log("Post em texto puro:", JSON.stringify(review));
@@ -268,6 +286,107 @@ async function toggleLike(reviewId) {
   });
 
   loadFeed(); // Recarrega o feed para atualizar os corações e os números
+}
+
+function filterCategory(categoryName, clickedButton) {
+  document.getElementById("searchInput").value = ""; // Limpa a pesquisa de texto
+
+  // Lógica para pintar o botão selecionado
+  if (clickedButton) {
+    // 1. Pega todos os botões do filtro
+    const allButtons = document.querySelectorAll("#categoryFilters button");
+
+    // 2. Tira a cor sólida de todos e deixa só a borda
+    allButtons.forEach((btn) => {
+      btn.classList.remove("btn-dark");
+      btn.classList.add("btn-outline-dark");
+    });
+
+    // 3. Pinta com cor sólida apenas o botão que foi clicado
+    clickedButton.classList.remove("btn-outline-dark");
+    clickedButton.classList.add("btn-dark");
+  }
+
+  loadFeed(categoryName, "");
+}
+
+// Disparado ao clicar no botão "Buscar"
+function searchRestaurant() {
+  const searchName = document.getElementById("searchInput").value;
+
+  // Quando pesquisa por texto, a gente devolve a marcação visual para o botão "Todos"
+  const allButtons = document.querySelectorAll("#categoryFilters button");
+  allButtons.forEach((btn) => {
+    btn.classList.remove("btn-dark");
+    btn.classList.add("btn-outline-dark");
+  });
+  allButtons[0].classList.remove("btn-outline-dark");
+  allButtons[0].classList.add("btn-dark");
+
+  loadFeed("", searchName);
+}
+
+async function loadProfile() {
+  const token = localStorage.getItem("michelinToken");
+  const loggedEmail = getLoggedEmail();
+
+  const response = await fetch(`${API_URL}/reviews/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (response.status === 403) return logout();
+
+  const profileData = await response.json();
+
+  // 1. Preenche as estatísticas coloridas
+  document.getElementById("statTotal").innerText = profileData.totalReviews;
+  document.getElementById("statAvg").innerText =
+    profileData.averageRating.toFixed(1);
+  document.getElementById("statFav").innerText = profileData.favoriteCategory;
+
+  // 2. Preenche os cartões (igual ao feed, mas só com os seus!)
+  const profileFeedContainer = document.getElementById("profileFeedContainer");
+  profileFeedContainer.innerHTML = "";
+
+  if (profileData.myReviews.length === 0) {
+    profileFeedContainer.innerHTML =
+      "<p class='text-muted'>Você ainda não avaliou nenhum lugar.</p>";
+    return;
+  }
+
+  profileData.myReviews.forEach((review) => {
+    const starsHtml = "⭐".repeat(review.rating);
+    const imageUrl = `${API_URL}/uploads/${review.imagePath}`;
+
+    const hasLiked =
+      review.likedByEmails && review.likedByEmails.includes(loggedEmail);
+    const heartIcon = hasLiked ? "❤️" : "🤍";
+    const likeClass = hasLiked ? "liked" : "";
+
+    profileFeedContainer.innerHTML += `
+            <div class="col-md-4 mb-4"> <div class="review-card">
+                    <div class="img-container">
+                        <span class="category-badge">${review.category}</span>
+                        <img src="${imageUrl}" class="review-img" alt="Foto" style="height: 180px;">
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="fw-bold mb-0 text-truncate pe-2">${review.restaurantName}</h6>
+                            <span class="stars flex-shrink-0" style="font-size:0.9rem;">${starsHtml}</span>
+                        </div>
+                        <p class="text-muted small mb-3 text-truncate">"${review.comment}"</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                            <button class="btn-like ${likeClass}" onclick="toggleLike(${Number(review.Id)}); setTimeout(loadProfile, 300)">
+                                ${heartIcon} <span class="ms-1">${review.likeCount}</span>
+                            </button>
+                            <button class="btn-delete" onclick="confirmDelete(${Number(review.Id)})">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+  });
 }
 
 checkAuth();
