@@ -190,61 +190,6 @@
             </div>
           </div>
 
-          <div id="profileSection" class="d-none mt-2">
-            <h3 class="fw-bold mb-4">Meu Perfil</h3>
-
-            <div class="row mb-5">
-              <div class="col-md-4 mb-3">
-                <div
-                  class="card bg-danger text-white border-0 shadow-sm"
-                  style="border-radius: 20px"
-                >
-                  <div class="card-body text-center py-4">
-                    <h1 class="display-4 fw-bold" id="statTotal">0</h1>
-                    <p
-                      class="mb-0 text-white-50 fw-bold text-uppercase letter-spacing"
-                    >
-                      Lugares Avaliados
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-4 mb-3">
-                <div
-                  class="card bg-warning text-dark border-0 shadow-sm"
-                  style="border-radius: 20px"
-                >
-                  <div class="card-body text-center py-4">
-                    <h1 class="display-4 fw-bold" id="statAvg">0.0</h1>
-                    <p
-                      class="mb-0 text-dark-50 fw-bold text-uppercase letter-spacing"
-                    >
-                      Média de Notas
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-4 mb-3">
-                <div
-                  class="card bg-dark text-white border-0 shadow-sm"
-                  style="border-radius: 20px"
-                >
-                  <div class="card-body text-center py-4">
-                    <h1 class="display-5 fw-bold mt-2 mb-3" id="statFav">-</h1>
-                    <p
-                      class="mb-0 text-white-50 fw-bold text-uppercase letter-spacing"
-                    >
-                      Categoria Favorita
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <h4 class="fw-bold mb-4">Meu Histórico</h4>
-            <div class="row g-4" id="profileFeedContainer"></div>
-          </div>
-
           <div class="col-lg-8 col-md-7">
             <div class="mb-4">
               <div
@@ -255,7 +200,7 @@
                   type="text"
                   id="searchInput"
                   class="form-control border-0 bg-white py-2"
-                  placeholder="Buscar restaurante"
+                  placeholder="Buscar restaurante (ex: Mocelim)..."
                 />
                 <button
                   class="btn btn-danger px-4 fw-bold"
@@ -305,11 +250,66 @@
               </div>
             </div>
 
-            <h4 class="fw-bold mb-4 ms-2">Últimas Avaliações</h4>
+            <h4 class="fw-bold mb-4 ms-2">Últimas Avaliações da Galera</h4>
 
             <div class="row g-4" id="feedContainer"></div>
           </div>
         </div>
+      </div>
+
+      <div id="profileSection" class="d-none mt-4">
+        <h3 class="fw-bold mb-4">Meu Perfil</h3>
+
+        <div class="row mb-5">
+          <div class="col-md-4 mb-3">
+            <div
+              class="card bg-danger text-white border-0 shadow-sm"
+              style="border-radius: 20px"
+            >
+              <div class="card-body text-center py-4">
+                <h1 class="display-4 fw-bold" id="statTotal">0</h1>
+                <p
+                  class="mb-0 text-white-50 fw-bold text-uppercase letter-spacing"
+                >
+                  Lugares Avaliados
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div
+              class="card bg-warning text-dark border-0 shadow-sm"
+              style="border-radius: 20px"
+            >
+              <div class="card-body text-center py-4">
+                <h1 class="display-4 fw-bold" id="statAvg">0.0</h1>
+                <p
+                  class="mb-0 text-dark-50 fw-bold text-uppercase letter-spacing"
+                >
+                  Média de Notas
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div
+              class="card bg-dark text-white border-0 shadow-sm"
+              style="border-radius: 20px"
+            >
+              <div class="card-body text-center py-4">
+                <h1 class="display-5 fw-bold mt-2 mb-3" id="statFav">-</h1>
+                <p
+                  class="mb-0 text-white-50 fw-bold text-uppercase letter-spacing"
+                >
+                  Categoria Favorita
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h4 class="fw-bold mb-4">Meu Histórico</h4>
+        <div class="row g-4" id="profileFeedContainer"></div>
       </div>
     </div>
 
