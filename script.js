@@ -45,18 +45,39 @@ document.getElementById("formLogin").addEventListener("submit", async (e) => {
     password: document.getElementById("loginPassword").value,
   };
 
-  const res = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+  Swal.fire({
+    title: "Conectando ao servidor...",
+    text: "Isso pode levar alguns segundos na primeira vez.",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
   });
 
-  if (res.ok) {
-    const token = await res.text();
-    localStorage.setItem("michelinToken", token);
-    showFeed();
-  } else {
-    Swal.fire("Acesso Negado", "Senha incorreta.", "error");
+  try {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    Swal.close();
+
+    if (res.ok) {
+      const token = await res.text();
+      localStorage.setItem("michelinToken", token);
+      showFeed();
+    } else {
+      Swal.fire("Acesso Negado", "E-mail ou senha incorretos.", "error");
+    }
+  } catch (error) {
+    Swal.close();
+    Swal.fire(
+      "Erro de Conexão",
+      "Não foi possível conectar ao servidor. Tente novamente.",
+      "error",
+    );
+    console.error("Erro no login:", error);
   }
 });
 
